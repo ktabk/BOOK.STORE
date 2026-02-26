@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" id="favicon-icon" href="https://placehold.co/32x32?text=A">
+    <title>لوحة التحكم | Book.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white font-cairo overflow-hidden h-screen flex flex-col md:flex-row">
+
+    <div id="login-modal" class="fixed inset-0 bg-black z-[100] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-2xl w-full max-w-md text-center border border-white/10 shadow-2xl">
+            <div class="w-16 h-16 bg-gold rounded-full flex items-center justify-center mx-auto mb-4 text-black text-2xl">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-6">الدخول للمدير</h2>
+            <input type="password" id="admin-pass" placeholder="كلمة المرور" class="input-field mb-4 text-center text-lg">
+            <button onclick="adminLogin()" class="w-full bg-gold text-black font-bold py-3 rounded-lg hover:bg-yellow-500 transition">دخول</button>
+        </div>
+    </div>
+
+    <div id="mobile-header" class="md:hidden bg-[#111] border-b border-white/5 p-4 flex justify-between items-center z-30 hidden">
+        <h1 class="text-xl font-bold text-gold">لوحة الإدارة</h1>
+        <button onclick="toggleSidebar()" class="text-white text-2xl"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div id="admin-panel" class="hidden flex-1 flex flex-col md:flex-row h-full relative overflow-hidden">
+        
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <aside id="admin-sidebar" class="fixed inset-y-0 right-0 w-64 bg-[#111] border-l border-white/5 p-4 flex flex-col gap-2 z-50 shadow-2xl transform translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
+            <div class="flex justify-between items-center mb-6 py-4 border-b border-white/5">
+                <div>
+                    <h1 class="text-2xl font-bold text-gold">لوحة الإدارة</h1>
+                    <p class="text-xs text-gray-500">نظام إدارة المكتبة v3.0</p>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <button onclick="switchTab('add-book'); toggleSidebar(false)" class="admin-tab-btn active text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-plus-circle text-gold w-6"></i> إضافة كتاب
+            </button>
+            <button onclick="switchTab('inventory'); toggleSidebar(false)" class="admin-tab-btn text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-boxes text-blue-400 w-6"></i> المخزون
+            </button>
+            <button onclick="switchTab('orders'); toggleSidebar(false)" class="admin-tab-btn text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-shopping-bag text-green-400 w-6"></i> الطلبات
+            </button>
+            <button onclick="switchTab('slider'); toggleSidebar(false)" class="admin-tab-btn text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-images text-pink-400 w-6"></i> إدارة العروض
+            </button>
+            <button onclick="switchTab('coupons'); toggleSidebar(false)" class="admin-tab-btn text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-ticket-alt text-yellow-400 w-6"></i> الكوبونات
+            </button>
+            <button onclick="switchTab('settings'); toggleSidebar(false)" class="admin-tab-btn text-right p-3 rounded-lg hover:bg-white/5 transition flex items-center gap-3">
+                <i class="fas fa-sliders-h text-purple-400 w-6"></i> الإعدادات
+            </button>
+            <div class="mt-auto">
+                <a href="index.html" class="block w-full text-center bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition mb-2">
+                    <i class="fas fa-external-link-alt mr-2"></i> معاينة الموقع
+                </a>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto bg-dark relative custom-scrollbar w-full">
+            <section id="tab-add-book" class="admin-section max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+                    <span class="text-gold">#</span> إضافة كتاب جديد
+                </h2>
+                <form id="add-book-form" class="glass p-6 md:p-8 rounded-2xl space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">عنوان الكتاب</label>
+                            <input type="text" name="title" required class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">المؤلف</label>
+                            <input type="text" name="author" required class="input-field">
+                        </div>
+                    </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div>
+        <label class="text-sm text-gray-400 mb-1 block">التصنيف</label>
+        <select name="category" required class="input-field bg-[#222]">
+            <option value="روايات">روايات</option>
+            <option value="تنمية ذاتية">تنمية ذاتية</option>
+            <option value="تاريخ">تاريخ</option>
+            <option value="علوم">علوم</option>
+            <option value="أطفال">أطفال</option>
+            <option value="ديني">ديني</option>
+            <option value="سير ذاتية">سير ذاتية</option>
+        </select>
+    </div>
+    <div>
+        <label class="text-sm text-gray-400 mb-1 block">دار النشر</label>
+        <input type="text" name="publisher" required class="input-field" placeholder="اسم الدار">
+    </div>
+    <div>
+        <label class="text-sm text-gray-400 mb-1 block">اللغة</label>
+        <select name="language" class="input-field bg-[#222]">
+            <option value="العربية">العربية</option>
+            <option value="الإنجليزية">الإنجليزية</option>
+            <option value="الفرنسية">الفرنسية</option>
+            <option value="أخرى">أخرى</option>
+        </select>
+    </div>
+</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/5 p-4 rounded-xl border border-white/5">
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">السعر (ج.م)</label>
+                            <input type="number" name="price" required class="input-field text-gold font-bold">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">الخصم (ج.م)</label>
+                            <input type="number" name="discount" class="input-field text-red-400">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">الكمية بالمخزون</label>
+                            <input type="number" name="stock" required class="input-field text-green-400">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">رابط صورة الغلاف</label>
+                            <input type="text" name="image_url" required class="input-field" placeholder="https://...">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">الوسوم (افصل بينها بـ شرطة - )</label>
+                            <input type="text" name="tags" class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400 mb-1 block">وصف الكتاب</label>
+                            <textarea name="description" class="input-field h-32 resize-none"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-green-700 py-4 rounded-xl font-bold hover:shadow-lg transition">
+                        حفظ وإضافة للمخزون
+                    </button>
+                </form>
+            </section>
+             <section id="tab-inventory" class="admin-section hidden max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">إدارة المخزون</h2>
+                    <div class="flex gap-2 w-full max-w-md">
+                        <input type="text" id="inventory-search" placeholder="بحث باسم الكتاب أو المؤلف..." class="input-field w-full">
+                        <button onclick="loadInventory()" class="bg-gold text-black px-4 rounded-lg font-bold hover:bg-yellow-500 whitespace-nowrap">تحديث</button>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[700px]">
+<thead class="bg-white/5 text-gray-300">
+    <tr>
+        <th class="p-4 border-b border-white/10">الكتاب</th>
+        <th class="p-4 border-b border-white/10">السعر</th>
+        <th class="p-4 border-b border-white/10">الكمية</th>
+        <th class="p-4 border-b border-white/10">التصنيف</th>
+        <th class="p-4 border-b border-white/10 text-center w-24">ترتيب العرض</th> 
+        <th class="p-4 border-b border-white/10 text-center">إجراءات</th>
+    </tr>
+</thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-white/5 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+             <section id="tab-orders" class="admin-section hidden max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-3xl font-bold">الطلبات الواردة</h2>
+                    <div class="flex gap-2 w-full max-w-lg">
+                        <div class="relative w-full">
+                            <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="orders-search" placeholder="بحث برقم الاوردر، اسم العميل، الهاتف..." class="input-field w-full pr-10">
+                        </div>
+                        <button onclick="loadOrders()" class="bg-gold text-black px-4 rounded-lg font-bold hover:bg-yellow-500 whitespace-nowrap">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="glass rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[900px]">
+                            <thead class="bg-white/5 text-gray-300 uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th class="p-4 border-b border-white/10"># الطلب</th>
+                                    <th class="p-4 border-b border-white/10">التاريخ</th>
+                                    <th class="p-4 border-b border-white/10">العميل</th>
+                                    <th class="p-4 border-b border-white/10">الإجمالي</th>
+                                    <th class="p-4 border-b border-white/10">الحالة</th>
+                                    <th class="p-4 border-b border-white/10 text-center">التفاصيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-white/5 text-sm">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="tab-slider" class="admin-section hidden max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+        <span class="text-pink-500">#</span> إدارة العروض (Slider)
+    </h2>
+    
+    <div class="glass p-6 rounded-2xl mb-8 border border-pink-500/20">
+        <h3 class="text-xl font-bold mb-4 text-pink-400">إضافة عرض جديد</h3>
+        <form id="add-slider-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">العنوان الرئيسي</label>
+                <input type="text" name="title" required class="input-field" placeholder="مثال: خصم خاص">
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">العنوان الفرعي</label>
+                <input type="text" name="subtitle" class="input-field" placeholder="مثال: لفترة محدودة">
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="text-xs text-gray-400 mb-1 block">رابط الصورة (URL)</label>
+                <input type="text" name="image_url" required class="input-field text-left" dir="ltr" placeholder="https://...">
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">رابط عند الضغط (اختياري)</label>
+                <input type="text" name="link" class="input-field text-left" dir="ltr" placeholder="https://...">
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">ربط بكوبون (اختياري)</label>
+                <div class="relative">
+                    <select name="coupon_code" class="slider-coupon-select input-field bg-[#222] appearance-none cursor-pointer">
+                        <option value="">-- بدون كوبون --</option>
+                        </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                </div>
+            </div>
+            
+            <div class="md:col-span-2 mt-2">
+                <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 py-3 rounded-lg font-bold transition shadow-lg hover:shadow-pink-500/20">
+                    <i class="fas fa-plus-circle ml-2"></i> إضافة العرض
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="space-y-4" id="slider-list-container">
+        <div class="text-center text-gray-500">جاري التحميل...</div>
+    </div>
+</section>
+
+<section id="tab-coupons" class="admin-section hidden max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+        <span class="text-yellow-400">#</span> إدارة الكوبونات
+    </h2>
+
+    <div class="glass p-6 rounded-2xl mb-8 border border-yellow-500/20">
+        <h3 class="text-xl font-bold mb-4 text-yellow-400">إنشاء كوبون جديد</h3>
+        <form id="add-coupon-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" name="code" placeholder="كود الكوبون (مثال: SAVE20)" required class="input-field uppercase">
+            
+            <select name="type" class="input-field bg-[#222]" onchange="toggleCouponFields(this.value)">
+                <option value="percent">نسبة مئوية (%)</option>
+                <option value="fixed">مبلغ ثابت (ج.م)</option>
+                <option value="free_shipping">شحن مجاني</option>
+            </select>
+
+            <input type="number" name="value" placeholder="القيمة (مثال: 10)" class="input-field" id="coupon-value-field">
+            <input type="number" name="min_order" placeholder="الحد الأدنى للطلب" class="input-field">
+            
+            <input type="number" name="max_discount" placeholder="أقصى خصم (للنسبة)" class="input-field" id="coupon-max-field">
+            <input type="date" name="expiry_date" class="input-field" title="تاريخ الانتهاء">
+            <input type="number" name="usage_limit" placeholder="حد الاستخدام (عدد المرات)" class="input-field">
+            
+            <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 py-2 rounded-lg font-bold transition md:col-span-4 text-black">إنشاء الكوبون</button>
+        </form>
+    </div>
+
+    <div class="glass rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse min-w-[800px]">
+                <thead class="bg-white/5 text-gray-300">
+                    <tr>
+                        <th class="p-4 border-b border-white/10">الكود</th>
+                        <th class="p-4 border-b border-white/10">النوع</th>
+                        <th class="p-4 border-b border-white/10">القيمة</th>
+                        <th class="p-4 border-b border-white/10">الاستخدام</th>
+                        <th class="p-4 border-b border-white/10">الانتهاء</th>
+                        <th class="p-4 border-b border-white/10 text-center">حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="coupons-table-body" class="divide-y divide-white/5 text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+             <section id="tab-settings" class="admin-section hidden max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">إعدادات الموقع</h2>
+                <form id="settings-form" class="glass p-8 rounded-2xl space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="text-gold font-bold text-lg border-b border-white/10 pb-2">بيانات أساسية</h3>
+                        <input type="text" name="site_name" id="set-site_name" placeholder="اسم الموقع" class="input-field">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">رابط الموقع (Site URL)</label>
+                            <input type="text" name="site_url" id="set-site_url" placeholder="https://your-site.com" class="input-field" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">رابط شعار الموقع (Logo URL)</label>
+                            <input type="text" name="site_logo" id="set-site_logo" placeholder="https://example.com/logo.png" class="input-field">
+                        </div>
+                        <input type="text" name="contact_email" id="set-contact_email" placeholder="البريد الإلكتروني" class="input-field">
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-gold font-bold text-lg border-b border-white/10 pb-2">روابط السوشيال ميديا</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="facebook" id="set-facebook" placeholder="Facebook URL" class="input-field">
+                            <input type="text" name="instagram" id="set-instagram" placeholder="Instagram URL" class="input-field">
+                            <input type="text" name="whatsapp" id="set-whatsapp" placeholder="WhatsApp Number" class="input-field">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-gold font-bold text-lg border-b border-white/10 pb-2">النصوص القانونية</h3>
+                        <textarea name="about_text" id="set-about_text" class="input-field h-24" placeholder="من نحن"></textarea>
+                        <textarea name="privacy_policy" id="set-privacy_policy" class="input-field h-24" placeholder="سياسة الخصوصية"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-500 shadow-lg transition">حفظ التغييرات</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-black/95 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass w-full max-w-4xl p-6 rounded-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h3 class="text-xl font-bold mb-4">تعديل بيانات الكتاب</h3>
+            <form id="edit-book-form" class="space-y-5">
+                <input type="hidden" name="id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input type="text" name="title" required class="input-field" placeholder="العنوان">
+                    <input type="text" name="author" required class="input-field" placeholder="المؤلف">
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <input type="number" name="price" required class="input-field" placeholder="السعر">
+                    <input type="number" name="discount" class="input-field" placeholder="الخصم">
+                    <input type="number" name="stock" required class="input-field" placeholder="الكمية">
+                </div>
+<div class="grid grid-cols-3 gap-4">
+    <select name="category" class="input-field bg-[#222]">
+        <option value="روايات">روايات</option>
+        <option value="تنمية ذاتية">تنمية ذاتية</option>
+        <option value="تاريخ">تاريخ</option>
+        <option value="علوم">علوم</option>
+        <option value="أطفال">أطفال</option>
+        <option value="ديني">ديني</option>
+    </select>
+    <input type="text" name="publisher" class="input-field" placeholder="دار النشر">
+    
+    <select name="language" class="input-field bg-[#222]">
+        <option value="العربية">العربية</option>
+        <option value="الإنجليزية">الإنجليزية</option>
+        <option value="الفرنسية">الفرنسية</option>
+        <option value="أخرى">أخرى</option>
+    </select>
+</div>
+                <input type="text" name="image_url" class="input-field" placeholder="رابط الصورة">
+                <input type="text" name="tags" class="input-field" placeholder="الوسوم">
+                <textarea name="description" class="input-field h-24" placeholder="الوصف"></textarea>
+                <div class="pt-4 flex gap-4">
+                    <button type="submit" class="flex-1 bg-gold text-black py-3 rounded-lg font-bold">حفظ التعديلات</button>
+                    <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 bg-gray-700 py-3 rounded-lg font-bold">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<div id="edit-slider-modal" class="fixed inset-0 bg-black/95 z-[80] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="glass w-full max-w-lg p-6 rounded-2xl border border-pink-500/20 shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+            <h3 class="text-xl font-bold text-pink-400">تعديل تفاصيل العرض</h3>
+            <button onclick="document.getElementById('edit-slider-modal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        
+        <form id="edit-slider-form" class="space-y-4">
+            <input type="hidden" name="id">
+            <input type="hidden" name="active">
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">العنوان الرئيسي</label>
+                <input type="text" name="title" class="input-field" required>
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">العنوان الفرعي</label>
+                <input type="text" name="subtitle" class="input-field">
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">رابط الصورة</label>
+                <input type="text" name="image_url" class="input-field text-left" dir="ltr" required>
+            </div>
+            
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">الرابط عند الضغط</label>
+                <input type="text" name="link" class="input-field text-left" dir="ltr">
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">الكوبون المرتبط</label>
+                <div class="relative">
+                    <select name="coupon_code" class="slider-coupon-select input-field bg-[#222] appearance-none cursor-pointer">
+                        <option value="">-- بدون كوبون --</option>
+                        </select>
+                    <i class="fas fa-chevron-down absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 pt-4 border-t border-white/10">
+                <button type="submit" class="flex-1 bg-pink-600 hover:bg-pink-500 py-3 rounded-lg font-bold transition shadow-lg">حفظ التغييرات</button>
+                <button type="button" onclick="document.getElementById('edit-slider-modal').classList.add('hidden')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-bold transition">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="order-details-modal" class="fixed inset-0 bg-black/95 z-[90] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="glass w-full max-w-3xl p-0 rounded-2xl max-h-[90vh] flex flex-col shadow-2xl border border-white/10">
+        
+        <div class="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+            <div>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-file-invoice text-gold"></i> تفاصيل الطلب
+                </h3>
+                <p class="text-xs text-gray-400 mt-1" id="modal-order-id">#ORD-000</p>
+            </div>
+            <button onclick="document.getElementById('order-details-modal').classList.add('hidden')" class="text-gray-400 hover:text-white text-2xl transition">&times;</button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto custom-scrollbar space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white/5 p-3 rounded-xl border border-white/5">
+                    <label class="text-gray-500 text-xs block mb-1">الحالة الحالية</label>
+                    <div id="modal-order-status" class="text-xl font-bold text-gold">جديد</div>
+                </div>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/5">
+                    <label class="text-gray-500 text-xs block mb-1">تاريخ الإنشاء</label>
+                    <div id="modal-order-date" class="text-white font-mono">...</div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-gold font-bold border-b border-white/10 pb-2 text-sm">بيانات العميل</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">الاسم بالكامل</label>
+                        <div id="modal-customer-name" class="text-white font-bold bg-black/20 p-2.5 rounded-lg border border-white/5">...</div>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">رقم الهاتف</label>
+                        <div id="modal-customer-phone" class="text-white bg-black/20 p-2.5 rounded-lg border border-white/5 font-mono">...</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-gray-400 block mb-1">البريد الإلكتروني</label>
+                        <div id="modal-customer-email" class="text-white bg-black/20 p-2.5 rounded-lg border border-white/5">...</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs text-gray-400 block mb-1">عنوان الشحن</label>
+                        <div id="modal-customer-address" class="text-white bg-black/20 p-2.5 rounded-lg border border-white/5 leading-relaxed">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-gold font-bold border-b border-white/10 pb-2 text-sm">المنتجات المطلوبة</h4>
+                <div id="modal-order-items" class="bg-black/30 rounded-lg p-4 text-sm space-y-2 border border-white/5 flex flex-col min-h-[50px]">
+                    </div>
+            </div>
+
+            <div class="bg-black/40 p-4 rounded-xl border border-white/5 space-y-2">
+                <div class="flex justify-between text-sm text-gray-400">
+                    <span>سعر الكتب:</span>
+                    <span id="modal-books-price" class="text-white">...</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-400">
+                    <span>المحافظة:</span>
+                    <span id="modal-order-gov" class="text-white">...</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-400 border-b border-white/10 pb-2 mb-2">
+                    <span>مصاريف الشحن:</span>
+                    <span id="modal-shipping-cost" class="text-gold">...</span>
+                </div>
+
+                <div id="modal-discount-row" class="flex justify-between text-sm text-green-400 border-b border-white/10 pb-2 mb-2 hidden">
+                    <span>خصم الكوبون (<span id="modal-coupon-code"></span>):</span>
+                    <span id="modal-discount-amount" class="font-bold">...</span>
+                </div>
+
+                <div class="flex justify-between font-bold text-lg">
+                    <span class="text-white">الإجمالي النهائي:</span>
+                    <span id="modal-order-total-final" class="text-green-400">...</span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="text-gold font-bold border-b border-white/10 pb-2 text-sm">سجل الحالات</h4>
+                <div class="space-y-2 text-sm" id="modal-order-history"></div>
+            </div>
+
+            <div class="pt-4 border-t border-white/10">
+                <button id="btn-delete-order" class="w-full bg-red-900/20 text-red-400 border border-red-500/30 py-3 rounded-xl hover:bg-red-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                    <i class="fas fa-trash-alt"></i> حذف الطلب نهائياً
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <div id="toast-container" class="fixed bottom-6 left-6 z-[100] flex flex-col gap-2"></div>
+<div id="confirm-modal" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div id="confirm-box" class="glass max-w-sm w-full p-6 rounded-2xl border border-white/10 shadow-2xl text-center transform scale-95 opacity-0 transition-all duration-300">
+            <div class="w-16 h-16 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fas fa-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">هل أنت متأكد؟</h3>
+            <p id="confirm-message" class="text-gray-400 mb-6 text-sm">هل تريد حقاً تنفيذ هذا الإجراء؟</p>
+            <div class="flex gap-3">
+                <button id="confirm-yes-btn" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold transition">نعم، نفذ</button>
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2.5 rounded-xl font-bold transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    <script src="admin.js?v=5.4"></script>
+</body>
+</html>
